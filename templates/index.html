@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Prediction System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <h1>🎓 Student Performance Prediction System</h1>
+            <p class="subtitle">Predict your final exam score using Machine Learning</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Left Section: Input Form -->
+            <section class="form-section">
+                <h2>📝 Enter Your Details</h2>
+                <form id="predictionForm">
+                    <!-- Study Hours Input -->
+                    <div class="form-group">
+                        <label for="studyHours">Study Hours per Week (0-24)</label>
+                        <input 
+                            type="number" 
+                            id="studyHours" 
+                            name="study_hours" 
+                            min="0" 
+                            max="24" 
+                            step="0.5"
+                            placeholder="e.g., 8"
+                            required
+                        >
+                        <small>How many hours do you study per week?</small>
+                    </div>
+
+                    <!-- Attendance Input -->
+                    <div class="form-group">
+                        <label for="attendance">Attendance Percentage (0-100)</label>
+                        <input 
+                            type="number" 
+                            id="attendance" 
+                            name="attendance" 
+                            min="0" 
+                            max="100" 
+                            step="1"
+                            placeholder="e.g., 85"
+                            required
+                        >
+                        <small>What is your attendance percentage?</small>
+                    </div>
+
+                    <!-- Previous Score Input -->
+                    <div class="form-group">
+                        <label for="previousScore">Previous Score (0-100)</label>
+                        <input 
+                            type="number" 
+                            id="previousScore" 
+                            name="previous_score" 
+                            min="0" 
+                            max="100" 
+                            step="1"
+                            placeholder="e.g., 75"
+                            required
+                        >
+                        <small>What was your score in the previous exam?</small>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-predict">
+                        🚀 Predict Score
+                    </button>
+
+                    <!-- Clear Button -->
+                    <button type="reset" class="btn-clear">
+                        🔄 Clear
+                    </button>
+                </form>
+
+                <!-- Error Message Display -->
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+            </section>
+
+            <!-- Right Section: Results -->
+            <section class="results-section" id="resultsSection" style="display: none;">
+                <h2>📊 Prediction Results</h2>
+
+                <!-- Predicted Score Card -->
+                <div class="result-card score-card">
+                    <h3>Predicted Final Score</h3>
+                    <div class="score-display">
+                        <span class="score-value" id="predictedScore">-</span>
+                        <span class="score-unit">/ 100</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <!-- Status Card (Pass/Fail) -->
+                <div class="result-card" id="statusCard">
+                    <h3>Status</h3>
+                    <div class="status-display" id="statusDisplay">
+                        -
+                    </div>
+                </div>
+
+                <!-- Confidence Card -->
+                <div class="result-card confidence-card">
+                    <h3>Model Confidence</h3>
+                    <div class="confidence-display">
+                        <span class="confidence-value" id="confidenceValue">-</span>
+                        <span class="confidence-unit">%</span>
+                    </div>
+                </div>
+
+                <!-- Feedback Card -->
+                <div class="result-card feedback-card">
+                    <h3>💡 Feedback & Recommendation</h3>
+                    <p id="feedbackText">-</p>
+                </div>
+
+                <!-- Input Summary -->
+                <div class="result-card input-summary">
+                    <h3>📋 Your Inputs</h3>
+                    <ul>
+                        <li><strong>Study Hours:</strong> <span id="summaryStudyHours">-</span> hrs/week</li>
+                        <li><strong>Attendance:</strong> <span id="summaryAttendance">-</span>%</li>
+                        <li><strong>Previous Score:</strong> <span id="summaryPreviousScore">-</span>/100</li>
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- Information Section -->
+        <section class="info-section">
+            <h2>ℹ️ About This System</h2>
+            <div class="info-cards">
+                <div class="info-card">
+                    <h4>🤖 Model</h4>
+                    <p>Linear Regression with 3 input features</p>
+                </div>
+                <div class="info-card">
+                    <h4>📈 Accuracy</h4>
+                    <p>R² Score: ~0.78 (78% variance explained)</p>
+                </div>
+                <div class="info-card">
+                    <h4>⚡ Speed</h4>
+                    <p>Predictions made in milliseconds</p>
+                </div>
+                <div class="info-card">
+                    <h4>✅ Pass Threshold</h4>
+                    <p>Score ≥ 40 marks = PASS</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2026 Student Performance Prediction System | Machine Learning Project</p>
+        </footer>
+    </div>
+
+    <!-- JavaScript for Form Handling -->
+    <script>
+        const form = document.getElementById('predictionForm');
+        const resultsSection = document.getElementById('resultsSection');
+        const errorMessage = document.getElementById('errorMessage');
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Get input values
+            const studyHours = document.getElementById('studyHours').value;
+            const attendance = document.getElementById('attendance').value;
+            const previousScore = document.getElementById('previousScore').value;
+
+            // Hide error message
+            errorMessage.style.display = 'none';
+
+            // Show loading state
+            const predictButton = form.querySelector('.btn-predict');
+            const originalText = predictButton.textContent;
+            predictButton.textContent = '⏳ Processing...';
+            predictButton.disabled = true;
+
+            try {
+                // Send prediction request to backend
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        study_hours: parseFloat(studyHours),
+                        attendance: parseFloat(attendance),
+                        previous_score: parseFloat(previousScore)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Display results
+                    displayResults(data, studyHours, attendance, previousScore);
+                    resultsSection.style.display = 'block';
+                    resultsSection.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    // Show error
+                    showError(data.error || 'Prediction failed');
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                // Restore button
+                predictButton.textContent = originalText;
+                predictButton.disabled = false;
+            }
+        });
+
+        function displayResults(data, studyHours, attendance, previousScore) {
+            // Update score
+            const score = data.predicted_score;
+            document.getElementById('predictedScore').textContent = score;
+
+            // Update progress bar
+            const progressFill = document.getElementById('progressFill');
+            progressFill.style.width = (score / 100) * 100 + '%';
+
+            // Update status
+            const statusDisplay = document.getElementById('statusDisplay');
+            const statusCard = document.getElementById('statusCard');
+            if (data.status === 'PASS') {
+                statusDisplay.textContent = '✅ PASS';
+                statusDisplay.className = 'status-display pass';
+                statusCard.style.borderColor = '#28a745';
+            } else {
+                statusDisplay.textContent = '❌ FAIL';
+                statusDisplay.className = 'status-display fail';
+                statusCard.style.borderColor = '#dc3545';
+            }
+
+            // Update confidence
+            document.getElementById('confidenceValue').textContent = data.confidence;
+
+            // Update feedback
+            document.getElementById('feedbackText').textContent = data.feedback;
+
+            // Update input summary
+            document.getElementById('summaryStudyHours').textContent = studyHours;
+            document.getElementById('summaryAttendance').textContent = attendance;
+            document.getElementById('summaryPreviousScore').textContent = previousScore;
+        }
+
+        function showError(message) {
+            errorMessage.textContent = '❌ ' + message;
+            errorMessage.style.display = 'block';
+            resultsSection.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
