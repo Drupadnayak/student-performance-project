@@ -1,3 +1,5 @@
+<img width="1920" height="2267" alt="screencapture-localhost-5000-2026-04-27-23_18_01" src="https://github.com/user-attachments/assets/a55d9f5f-4f43-4972-ba84-79d2fe5c2fd4" />
+
 # Student Performance Prediction System
 
 A complete Machine Learning project that predicts student final examination scores using Linear Regression.
